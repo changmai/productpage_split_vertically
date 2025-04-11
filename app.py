@@ -21,32 +21,38 @@ if uploaded_file is not None:
         try:
             img = Image.open(file_path)
             img_width, img_height = img.size
-            basename = os.path.splitext(os.path.basename(file_path))[0]
-            output_dir = os.path.join(temp_dir, f"{basename}_slices")
-            os.makedirs(output_dir, exist_ok=True)
 
-            count = 0
-            for top in range(0, img_height, tile_height):
-                box = (0, top, img_width, min(top + tile_height, img_height))
-                tile = img.crop(box)
-                tile_filename = f"{basename}_part_{count}.jpg"
-                tile.save(os.path.join(output_dir, tile_filename))
-                count += 1
+            # 예측 분할 개수 출력
+            estimated_count = (img_height + tile_height - 1) // tile_height
+            st.info(f"총 {estimated_count}개의 이미지로 분할됩니다.")
 
-            # 압축파일 생성
-            zip_path = os.path.join(temp_dir, f"{basename}_slices.zip")
-            with zipfile.ZipFile(zip_path, 'w') as zipf:
-                for filename in os.listdir(output_dir):
-                    file_full_path = os.path.join(output_dir, filename)
-                    zipf.write(file_full_path, arcname=filename)
+            if st.button("📸 사진 분할 시작"):
+                basename = os.path.splitext(os.path.basename(file_path))[0]
+                output_dir = os.path.join(temp_dir, f"{basename}_slices")
+                os.makedirs(output_dir, exist_ok=True)
 
-            st.success(f"{count}개의 이미지로 분할 완료되었습니다.")
-            with open(zip_path, "rb") as f:
-                st.download_button(
-                    label="📦 분할 이미지 ZIP 다운로드",
-                    data=f,
-                    file_name=f"{basename}_slices.zip",
-                    mime="application/zip"
-                )
+                count = 0
+                for top in range(0, img_height, tile_height):
+                    box = (0, top, img_width, min(top + tile_height, img_height))
+                    tile = img.crop(box)
+                    tile_filename = f"{basename}_part_{count}.jpg"
+                    tile.save(os.path.join(output_dir, tile_filename))
+                    count += 1
+
+                # 압축파일 생성
+                zip_path = os.path.join(temp_dir, f"{basename}_slices.zip")
+                with zipfile.ZipFile(zip_path, 'w') as zipf:
+                    for filename in os.listdir(output_dir):
+                        file_full_path = os.path.join(output_dir, filename)
+                        zipf.write(file_full_path, arcname=filename)
+
+                st.success(f"{count}개의 이미지로 분할 완료되었습니다.")
+                with open(zip_path, "rb") as f:
+                    st.download_button(
+                        label="📦 분할 이미지 ZIP 다운로드",
+                        data=f,
+                        file_name=f"{basename}_slices.zip",
+                        mime="application/zip"
+                    )
         except Exception as e:
             st.error(f"이미지 처리 중 오류 발생: {e}")
