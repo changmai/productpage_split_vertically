@@ -10,7 +10,7 @@ st.title("📷 이미지 수직 분할기")
 st.markdown("이미지를 선택하고, 원하는 타일 높이를 입력하세요. 이미지의 가로 길이는 자동으로 원본 기준으로 처리됩니다.")
 
 uploaded_file = st.file_uploader("이미지 파일 업로드 (JPG, PNG)", type=["jpg", "jpeg", "png"])
-tile_height = st.number_input("타일 높이 (px)", min_value=3000, max_value=15000, value=3000, step=200)
+tile_height = st.number_input("타일 높이 (px)", min_value=3000, max_value=15000, value=3000, step=500)
 
 if uploaded_file is not None:
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -36,7 +36,7 @@ if uploaded_file is not None:
                     box = (0, top, img_width, min(top + tile_height, img_height))
                     tile = img.crop(box)
                     tile_filename = f"{basename}_part_{count}.jpg"
-                    tile.save(os.path.join(output_dir, tile_filename))
+                    tile.save(os.path.join(output_dir, tile_filename), quality=100, subsampling=0)
                     count += 1
 
                 # 압축파일 생성
